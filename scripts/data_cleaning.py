@@ -4,7 +4,10 @@ from regex import D
 import sys
 import wave
 import struct
-
+import soundfile as sf
+import os
+import librosa   #for audio processing
+import librosa.display
 import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -87,3 +90,14 @@ class DataCleaner:
         ofile.writeframes(left.tostring())
         ofile.writeframes(right.tostring())
         ofile.close()
+
+    def standardize(self,df):
+        #standardize to 44.1KHz
+        output='output'   
+        file = df['Feature'] 
+        for element in file:
+            audio_file = os.path.basename(element)
+            directory = os.path.dirname(element)
+            data,sampling_rate=librosa.load(element, sr=44100) 
+            name = os.path.join(output, audio_file)
+            sf.write(name, data, sampling_rate)
