@@ -20,6 +20,9 @@ class DataCleaner:
     class that handles data cleaning.
     """
     def __init__(self, filehandler) -> None:
+        """
+        initilize logger
+        """
         file_handler = logging.FileHandler(filehandler)
         formatter = logging.Formatter("time: %(asctime)s, function: %(funcName)s, module: %(name)s, message: %(message)s \n")
         file_handler.setFormatter(formatter)
@@ -28,7 +31,7 @@ class DataCleaner:
 
     def channel_count(self, df, output=False):
         """
-        it identifies number of channels in the audio files
+        It identifies number of channels in the audio files
         and adds a new column with the identified number
         """
         n_list=[]
@@ -60,6 +63,7 @@ class DataCleaner:
         meta_data['Output'] = meta_data['Feature'].apply(lambda x: x.replace(path+"/wav",output))
         
         return meta_data
+
 
     def make_stereo(self, file1, output):
         
