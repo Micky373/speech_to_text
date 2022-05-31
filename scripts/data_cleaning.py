@@ -26,17 +26,20 @@ class DataCleaner:
         logger.addHandler(file_handler)
 
 
-    def channel_count(df):
+    def channel_count(self, df, output=False):
         """
         it identifies number of channels in the audio files
         and adds a new column with the identified number
         """
         n_list=[]
+        col = "Feature"
+        if(output): 
+            col = "Output"
         for i in range(df.shape[0]):
             try:
-                data = wave.open(df.loc[i,"Feature"], mode = 'rb')
+                data = wave.open(df.loc[i,col], mode = 'rb')
             except:
-                n_list.append(200)
+                n_list.append(400)  # 400 means the data is missing
                 continue
             channel = data.getparams().nchannels
             n_list.append(channel)
@@ -45,7 +48,7 @@ class DataCleaner:
         return df
 
 
-    def generate_metadata(self, path):
+    def generate_metadata(self, path, output):
         """
         extracts target and feature out of the trsTrain.txt file
         """
@@ -54,6 +57,7 @@ class DataCleaner:
         meta_data['Feature'] = meta_data['Target'].apply(lambda x: x.split("</s>")[1].replace("(", "").replace(")", "").strip())
         meta_data['Target'] = meta_data['Target'].apply(lambda x: x.split("</s>")[0].replace("<s>", "").strip())
         meta_data['Feature'] = meta_data['Feature'].apply(lambda x: path+"/wav/"+x+".wav")
+        meta_data['Output'] = meta_data['Feature'].apply(lambda x: x.replace(path+"/wav",output))
         
         return meta_data
 
@@ -62,7 +66,6 @@ class DataCleaner:
         def everyOther (v, offset=0):
             return [v[i] for i in range(offset, len(v), 2)]
         ifile = wave.open(file1)
-        print(ifile.getparams())
         # (1, 2, 44100, 2013900, 'NONE', 'not compressed')
         (nchannels, sampwidth, framerate, nframes, comptype, compname) = ifile.getparams()
         frames = ifile.readframes(nframes * nchannels)
@@ -78,5 +81,5 @@ class DataCleaner:
         ofile = wave.open(output, 'w')
         ofile.setparams((2, sampwidth, framerate, nframes, comptype, compname))
         ofile.writeframes(left.tostring())
-        # ofile.writeframes(right.tostring())
+        ofile.writeframes(right.tostring())
         ofile.close()
