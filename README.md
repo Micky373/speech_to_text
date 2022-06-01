@@ -33,12 +33,12 @@ cd notebooks
 jupyter notebook
 ```
 
-- **Model Training ui**
+- **Model Training ui (Not implemented yet)**
 ```
 mlflow ui
 ```
 
-- **Dashboard**
+- **Dashboard (Not implemented yet)**
 ```
 streamlit run app.py
 ```
@@ -54,12 +54,12 @@ The folder is being tarcked with DVC and the files are only shown after cloning 
 
 ### Notebooks
 
-- ...
-
+- Preprocessing.ipynb: all the data preprocessing done here before model training.
 
 ### Scripts
 
-- ...
+- data_cleaning.py: contain all the data cleaning and modularizing functions.
+- data_viz.py: contain all the visualization related functions.
 
 ### Technologies used
 
@@ -75,6 +75,6 @@ The folder is being tarcked with DVC and the files are only shown after cloning 
 3. [Michael Tamirie](https://github.com/Micky373)
 4. [Matilda Awuor](https://github.com/Tilda98)
 5. [Meron Kelile](https://github.com/meriab21)
-6. [Abeselom G/kidan ](#)
-7. [Abubakarr Bangura](#)
-8. [Jeremy Teshome](#)
+6. [Abeselom G/kidan ](https://github.com/abeselomg)
+7. [Abubakarr Bangura](https://github.com/abu-bakarr)
+8. [Jeremy Teshome](https://github.com/Jeremy-Tesh)
