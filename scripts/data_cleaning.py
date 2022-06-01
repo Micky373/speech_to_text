@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from regex import D
+# from regex import D
 import sys
 import wave
 import struct
@@ -9,6 +9,8 @@ import os
 import librosa  # for audio processing
 import librosa.display
 import logging
+import random
+import soundfile as sf
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -112,16 +114,51 @@ class DataCleaner:
     def standardize(self, df):
         # standardize to 44.1KHz
         for i in range(df.shape[0]):
-            input = df.loc[i, 'Feature']
-            output = df.loc[i, 'Output']
+            data = df.loc[i, 'Output']
             try:
-                ifile = wave.open(input)
+                ifile = wave.open(data)
             except:
                 continue
             (nchannels, sampwidth, framerate, nframes,
              comptype, compname) = ifile.getparams()
-            ofile = wave.open(output, 'w')
+            ofile = wave.open(data, 'w')
             ofile.setparams(
                 (nchannels, sampwidth, 44100, nframes, comptype, compname))
             ofile.close()
             logger.info("successfully standardized sample rate")
+            
+    def resize_pad_trunc(self,df,max_ms=4000):
+        # aud, max_ms
+
+        for i in range(df.shape[0]):
+            data = df.loc[i, 'Output']
+            
+            # print(str(data).split("../")[-1])
+            path=os.path.abspath(os.path.join(os.pardir, str(data).split("../")[-1]))
+            
+            sig, sr =sf.read(path)
+            num_rows, sig_len = sig.shape
+            max_len = sr // 1000 * max_ms
+            if sig_len > max_len:
+                # Truncate the signal to the given length
+                # sig = sig[:, :max_len]
+                trimmed=librosa.util.fix_length(sig, size=max_len)
+                logger.info("successfully truncated audio")
+                
+            elif sig_len < max_len:
+                # Length of padding to add at the beginning and end of the signal
+                
+                trimmed=librosa.util.fix_length(sig, size=max_len)
+                logger.info("successfully padded audio")
+                
+            output='train_new'   
+            audio_file = os.path.basename(data)
+            directory = os.path.dirname(data)
+            audio_file
+            _,sampling_rate=librosa.load(data, sr=44100) 
+            name = os.path.join(output, audio_file)
+            sf.write(path, trimmed.T, sampling_rate)
+
+            
+            
+
