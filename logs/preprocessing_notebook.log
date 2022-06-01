@@ -316,8 +316,6 @@ time: 2022-06-01 09:59:12,407, function: make_stereo, module: data_cleaning, mes
 
 time: 2022-06-01 09:59:12,407, function: make_stereo, module: data_cleaning, message: Data is missing (../data/train/wav/tr_78_tr01078.wav), please check! 
 
-time: 2022-06-01 09:59:12,407, function: make_stereo, module: data_cleaning, message: Data is missing (../data/train/wav/tr_78_tr01078.wav), please check! 
-
 time: 2022-06-01 09:59:12,407, function: make_stereo, module: data_cleaning, message: Data is missing (../data/train/wav/tr_79_tr01079.wav), please check! 
 
 time: 2022-06-01 09:59:12,407, function: make_stereo, module: data_cleaning, message: Data is missing (../data/train/wav/tr_79_tr01079.wav), please check! 
