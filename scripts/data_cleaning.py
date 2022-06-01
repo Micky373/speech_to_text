@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from regex import D
+from tqdm import tqdm
 import sys
 import wave
 import struct
@@ -125,3 +126,26 @@ class DataCleaner:
                 (nchannels, sampwidth, 44100, nframes, comptype, compname))
             ofile.close()
             logger.info("successfully standardized sample rate")
+
+    def features_extractor(self,path):
+        audio, _ = librosa.load(path, res_type='kaiser_fast') 
+        mfccs_features = librosa.feature.mfcc(y=audio, n_mfcc=40)
+        mfccs_scaled_features = np.mean(mfccs_features.T,axis=0)
+        
+        return mfccs_scaled_features
+
+    ### Now we iterate through every audio file and extract features 
+    ### using Mel-Frequency Cepstral 
+    
+    def total_feature_extractor(self,meta_data):
+        extracted_features=[]
+        for index_num,row in tqdm(meta_data.iterrows()):
+            if (row['n_channel']!=400):
+                file_name = row['Feature']
+                final_class_labels=row['Target']
+                data=self.features_extractor(file_name)
+                extracted_features.append([data,final_class_labels])
+            else:
+                continue    
+
+        logger.info("Successfully featurized!!!")
