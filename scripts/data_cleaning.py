@@ -48,6 +48,8 @@ class DataCleaner:
             n_list.append(channel)
         df["n_channel"] = n_list
 
+        logger.info("new column successfully added: channels count")
+
         return df
 
 
@@ -62,6 +64,8 @@ class DataCleaner:
         meta_data['Feature'] = meta_data['Feature'].apply(lambda x: path+"/wav/"+x+".wav")
         meta_data['Output'] = meta_data['Feature'].apply(lambda x: x.replace(path+"/wav",output))
         
+        logger.info("meta data successfully generated")
+
         return meta_data
 
 
@@ -75,6 +79,7 @@ class DataCleaner:
                 ifile = wave.open(input_p)
                 # (1, 2, 44100, 2013900, 'NONE', 'not compressed')
             except:
+                logger.warning("Data is missing, please check!")
                 continue
             (nchannels, sampwidth, framerate, nframes, comptype, compname) = ifile.getparams()
             frames = ifile.readframes(nframes * nchannels)
@@ -92,3 +97,5 @@ class DataCleaner:
             ofile.writeframes(left.tostring())
             ofile.writeframes(right.tostring())
             ofile.close()
+
+            logger.info("successfully converted channel from mono to stereo")
