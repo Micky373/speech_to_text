@@ -151,4 +151,5 @@ class DataCleaner:
         extracted_features_df = pd.DataFrame(extracted_features,columns=['feature','target'])
 
         logger.info("Successfully featurized!!!")
+        
         return extracted_features_df   
