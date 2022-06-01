@@ -134,8 +134,9 @@ class DataCleaner:
         
         return mfccs_scaled_features
 
-    ### Now we iterate through every audio file and extract features 
-    ### using Mel-Frequency Cepstral 
+    # Now we iterate through every audio file and extract features 
+    # Using Mel-Frequency Cepstral
+    # This funtion will recieve a dataframe and return a data frame with features and target as a column
     
     def total_feature_extractor(self,meta_data):
         extracted_features=[]
