@@ -65,25 +65,30 @@ class DataCleaner:
         return meta_data
 
 
-    def make_stereo(self, file1, output):
-        
+    def make_stereo(self, df):
         def everyOther (v, offset=0):
             return [v[i] for i in range(offset, len(v), 2)]
-        ifile = wave.open(file1)
-        # (1, 2, 44100, 2013900, 'NONE', 'not compressed')
-        (nchannels, sampwidth, framerate, nframes, comptype, compname) = ifile.getparams()
-        frames = ifile.readframes(nframes * nchannels)
-        ifile.close()
-        out = struct.unpack_from("%dh" % nframes * nchannels, frames)
-        # Convert 2 channels to numpy arrays
-        if nchannels == 2:
-            left = np.array(list(everyOther(out, 0)))
-            right = np.array(list(everyOther(out, 1)))
-        else:
-            left = np.array(out)
-            right = left
-        ofile = wave.open(output, 'w')
-        ofile.setparams((2, sampwidth, framerate, nframes, comptype, compname))
-        ofile.writeframes(left.tostring())
-        ofile.writeframes(right.tostring())
-        ofile.close()
+        for i in range(df.shape[0]):
+            input_p = df.loc[i, "Feature"]
+            output_p = df.loc[i, "Output"]
+            try:
+                ifile = wave.open(input_p)
+                # (1, 2, 44100, 2013900, 'NONE', 'not compressed')
+            except:
+                continue
+            (nchannels, sampwidth, framerate, nframes, comptype, compname) = ifile.getparams()
+            frames = ifile.readframes(nframes * nchannels)
+            ifile.close()
+            out = struct.unpack_from("%dh" % nframes * nchannels, frames)
+            # Convert 2 channels to numpy arrays
+            if nchannels == 2:
+                left = np.array(list(everyOther(out, 0)))
+                right = np.array(list(everyOther(out, 1)))
+            else:
+                left = np.array(out)
+                right = left
+            ofile = wave.open(output_p, 'w')
+            ofile.setparams((2, sampwidth, framerate, nframes, comptype, compname))
+            ofile.writeframes(left.tostring())
+            ofile.writeframes(right.tostring())
+            ofile.close()
