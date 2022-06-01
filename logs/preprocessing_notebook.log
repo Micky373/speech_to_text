@@ -1,0 +1,22 @@
+time: 2022-06-01 11:18:53,413, function: generate_metadata, module: data_cleaning, message: meta data successfully generated 
+
+time: 2022-06-01 11:19:18,582, function: channel_count, module: data_cleaning, message: new column successfully added: channels count 
+
+time: 2022-06-01 11:19:18,903, function: make_stereo, module: data_cleaning, message: Data is missing (../data/train/wav/tr_1_tr01001.wav), please check! 
+
+time: 2022-06-01 11:19:18,903, function: make_stereo, module: data_cleaning, message: Data is missing (../data/train/wav/tr_2_tr01002.wav), please check! 
+
+time: 2022-06-01 11:19:18,903, function: make_stereo, module: data_cleaning, message: Data is missing (../data/train/wav/tr_3_tr01003.wav), please check! 
+
+time: 2022-06-01 11:19:18,903, function: make_stereo, module: data_cleaning, message: Data is missing (../data/train/wav/tr_4_tr01004.wav), please check! 
+
+time: 2022-06-01 11:19:18,904, function: make_stereo, module: data_cleaning, message: Data is missing (../data/train/wav/tr_5_tr01005.wav), please check! 
+
+time: 2022-06-01 11:19:18,904, function: make_stereo, module: data_cleaning, message: Data is missing (../data/train/wav/tr_6_tr01006.wav), please check! 
+
+time: 2022-06-01 11:19:18,904, function: make_stereo, module: data_cleaning, message: Data is missing (../data/train/wav/tr_7_tr01007.wav), please check! 
+
+time: 2022-06-01 11:19:18,904, function: make_stereo, module: data_cleaning, message: Data is missing (../data/train/wav/tr_8_tr01008.wav), please check! 
+
+time: 2022-06-01 11:19:18,905, function: make_stereo, module: data_cleaning, message: Data is missing (../data/train/wav/tr_9_tr01009.wav), please check! 
+
