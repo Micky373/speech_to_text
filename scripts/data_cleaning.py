@@ -79,7 +79,7 @@ class DataCleaner:
                 ifile = wave.open(input_p)
                 # (1, 2, 44100, 2013900, 'NONE', 'not compressed')
             except:
-                logger.warning("Data is missing, please check!")
+                logger.warning("Data is missing ("+str(input_p)+"), please check!")
                 continue
             (nchannels, sampwidth, framerate, nframes, comptype, compname) = ifile.getparams()
             frames = ifile.readframes(nframes * nchannels)
