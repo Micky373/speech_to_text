@@ -110,7 +110,7 @@ class DataCleaner:
             logger.info("successfully converted channel from mono to stereo")
 
     def standardize(self, df):
-        # standardize to 44.1KHz
+        # standardize sampling rate
         for i in range(df.shape[0]):
             input = df.loc[i, 'Feature']
             output = df.loc[i, 'Output']
