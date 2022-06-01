@@ -146,6 +146,10 @@ class DataCleaner:
                 data=self.features_extractor(file_name)
                 extracted_features.append([data,final_class_labels])
             else:
-                continue    
+                continue 
+
+        extracted_features_df = pd.DataFrame(extracted_features,columns=['feature','target'])
+
+        return extracted_features_df   
 
         logger.info("Successfully featurized!!!")
