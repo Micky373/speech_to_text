@@ -127,6 +127,8 @@ class DataCleaner:
             ofile.close()
             logger.info("successfully standardized sample rate")
 
+    # Recieving a file and creating a feature out of it
+
     def features_extractor(self,path):
         audio, _ = librosa.load(path, res_type='kaiser_fast') 
         mfccs_features = librosa.feature.mfcc(y=audio, n_mfcc=40)
