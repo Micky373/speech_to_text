@@ -112,7 +112,16 @@ class DataCleaner:
     def standardize(self, df):
         # standardize to 44.1KHz
         for i in range(df.shape[0]):
-            element = df.loc[i, 'Feature']
-            out = df.loc[i, 'Output']
-            data, sampling_rate = librosa.load(element, sr=44100)
-            sf.write(out, data, sampling_rate)
+            input = df.loc[i, 'Feature']
+            output = df.loc[i, 'Output']
+            try:
+                ifile = wave.open(input)
+            except:
+                continue
+            (nchannels, sampwidth, framerate, nframes,
+             comptype, compname) = ifile.getparams()
+            ofile = wave.open(output, 'w')
+            ofile.setparams(
+                (nchannels, sampwidth, 44100, nframes, comptype, compname))
+            ofile.close()
+            logger.info("successfully standardized sample rate")
