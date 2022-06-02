@@ -131,12 +131,21 @@ class DataCleaner:
     def standardize(self, df):
         # standardize to 44.1KHz
         for i in range(df.shape[0]):
-            data = df.loc[i, 'Output']
+            input_p = df.loc[i, 'Output']
             try:
-                x, sr = librosa.load(data, sr=44100)
+                ifile = wave.open(input_p)
             except:
                 continue
-            sf.write(data, data=x, samplerate=44100)
+            (nchannels, sampwidth, framerate, nframes,
+             comptype, compname) = ifile.getparams()
+            frames = ifile.readframes(nframes)
+            ifile.close()
+            ofile = wave.open(input_p, 'w')
+            ofile.setparams(
+                (nchannels, sampwidth, 44100, int(np.round(44100*nframes/framerate,0)), comptype, compname))
+            ofile.writeframes(frames)
+            ofile.close()
+            logger.info("successfully standardized sample rate")
             
     def resize_pad_trunc(self,df,max_ms=4000):
         # aud, max_ms
