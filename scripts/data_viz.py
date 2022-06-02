@@ -30,3 +30,14 @@ class Data_Viz():
         plt.xlabel("Time")
         plt.plot(time, signal)
         plt.show()
+
+
+    def plot_spec(data: np.array, sr: int) -> None:
+        '''
+        Function for plotting spectrogram along with amplitude wave graph
+        '''
+        fig, ax = plt.subplots(1, 2, figsize=(15, 5))
+        ax[0].title.set_text(f'Shfiting the wave by Times {sr/10}')
+        ax[0].specgram(data, Fs=2)
+        ax[1].set_ylabel('Amplitude')
+        ax[1].plot(np.linspace(0, 1, len(data)), data)
