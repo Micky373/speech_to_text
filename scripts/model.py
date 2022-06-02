@@ -49,3 +49,26 @@ def compile_train_fn(model, learning_rate=2e-4):
                           [network_output, ctc_cost],
                           updates=updates)
     return train_fn
+
+def compile_test_fn(model):
+    """ Build a testing routine for speech models.
+    Args:
+        model: A keras model (built=True) instance
+    Returns:
+        val_fn (theano.function): Function that takes in acoustic inputs,
+            and calculates the loss. Returns network outputs and ctc cost
+    """
+    logger.info("Building val_fn")
+    acoustic_input = model.inputs[0]
+    network_output = model.outputs[0]
+    output_lens = K.placeholder(ndim=1, dtype='int32')
+    label = K.placeholder(ndim=1, dtype='int32')
+    label_lens = K.placeholder(ndim=1, dtype='int32')
+    network_output = network_output.dimshuffle((1, 0, 2))
+
+    ctc_cost = ctc.cpu_ctc_th(network_output, output_lens,
+                              label, label_lens).mean()
+    val_fn = K.function([acoustic_input, output_lens, label, label_lens,
+                        K.learning_phase()],
+                        [network_output, ctc_cost])
+    return val_fn
