@@ -1,15 +1,16 @@
 import pandas as pd
 import numpy as np
-from regex import D
-from tqdm import tqdm
+# from regex import D
 import sys
 import wave
-import struct
+from tqdm import tqdm
+import array
+import audioop
 import soundfile as sf
-import os
 import librosa  # for audio processing
 import librosa.display
 import logging
+import soundfile as sf
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -40,9 +41,10 @@ class DataCleaner:
         and adds a new column with the identified number
         """
         n_list = []
-        col = "Feature"
         if(output):
             col = "Output"
+        else:
+            col = "Feature"
         for i in range(df.shape[0]):
             try:
                 data = wave.open(df.loc[i, col], mode='rb')
@@ -54,6 +56,28 @@ class DataCleaner:
         df["n_channel"] = n_list
 
         logger.info("new column successfully added: channels count")
+
+        return df
+
+    def add_duration(self, df, output=False):
+        d_list = []
+        if(output):
+            col = "Output"
+        else:
+            col = "Feature"
+        for i in range(df.shape[0]):
+            try:
+                data = wave.open(df.loc[i, col], mode='rb')
+            except:
+                d_list.append(400)  # 400 means the data is missing
+                continue
+            frames = data.getnframes()
+            rate = data.getframerate()
+            duration = frames / float(rate)
+            d_list.append(duration)
+        df["Duration"] = d_list
+
+        logger.info("new column successfully added: Duration")
 
         return df
 
@@ -71,16 +95,18 @@ class DataCleaner:
             lambda x: path+"/wav/"+x+".wav")
         meta_data['Output'] = meta_data['Feature'].apply(
             lambda x: x.replace(path+"/wav", output))
+        
 
         logger.info("meta data successfully generated")
 
         return meta_data
 
-    def make_stereo(self, df):
-        def everyOther(v, offset=0):
-            return [v[i] for i in range(offset, len(v), 2)]
+    def make_stereo(self, df, output=False):
         for i in range(df.shape[0]):
             input_p = df.loc[i, "Feature"]
+            if(output):
+                input_p = df.loc[i, "Output"]
+            
             output_p = df.loc[i, "Output"]
             try:
                 ifile = wave.open(input_p)
@@ -89,44 +115,81 @@ class DataCleaner:
                 logger.warning(
                     "Data is missing ("+str(input_p)+"), please check!")
                 continue
-            (nchannels, sampwidth, framerate, nframes,
-             comptype, compname) = ifile.getparams()
-            frames = ifile.readframes(nframes * nchannels)
+            (nchannels, sampwidth, framerate, nframes, comptype, compname) = ifile.getparams()
+            assert comptype == 'NONE'  # Compressed not supported yet
+            array_type = {1:'B', 2: 'h', 4: 'l'}[sampwidth]
+            left_channel = array.array(array_type, ifile.readframes(nframes))[::nchannels]
             ifile.close()
-            out = struct.unpack_from("%dh" % nframes * nchannels, frames)
-            # Convert 2 channels to numpy arrays
-            if nchannels == 2:
-                left = np.array(list(everyOther(out, 0)))
-                right = np.array(list(everyOther(out, 1)))
-            else:
-                left = np.array(out)
-                right = left
-            ofile = wave.open(output_p, 'w')
-            ofile.setparams(
-                (2, sampwidth, framerate, nframes, comptype, compname))
-            ofile.writeframes(left.tostring())
-            ofile.writeframes(right.tostring())
-            ofile.close()
 
+            stereo = 2 * left_channel
+            stereo[0::2] = stereo[1::2] = left_channel
+
+            ofile = wave.open(output_p, 'w')
+            ofile.setparams((2, sampwidth, framerate, nframes, comptype, compname))
+            ofile.writeframes(stereo)
+            ofile.close()
             logger.info("successfully converted channel from mono to stereo")
 
-    def standardize(self, df):
+    def standardize(self, df, output=False):
         # standardize to 44.1KHz
         for i in range(df.shape[0]):
-            input = df.loc[i, 'Feature']
-            output = df.loc[i, 'Output']
+            
+            input_p = df.loc[i, 'Feature']
+            if(output):
+                input_p = df.loc[i, 'Output']
+            output_p = df.loc[i, 'Output']
             try:
-                ifile = wave.open(input)
+                ifile = wave.open(input_p)
             except:
                 continue
             (nchannels, sampwidth, framerate, nframes,
              comptype, compname) = ifile.getparams()
-            ofile = wave.open(output, 'w')
+            frames = ifile.readframes(nframes)
+            ifile.close()
+            ofile = wave.open(output_p, 'w')
             ofile.setparams(
-                (nchannels, sampwidth, 44100, nframes, comptype, compname))
+                (nchannels, sampwidth, 44100, int(np.round(44100*nframes/framerate,0)), comptype, compname))
+            converted = audioop.ratecv(frames, sampwidth, nchannels, framerate, 44100, None)
+            ofile.writeframes(converted[0])
             ofile.close()
             logger.info("successfully standardized sample rate")
+            
+    def resize_pad_trunc(self,df,max_ms=4000):
+        # aud, max_ms
 
+        for i in range(df.shape[0]):
+            data = df.loc[i, 'Output']
+            try:
+                sig, framerate = librosa.load(data, sr=None, mono=False)
+            except:
+                logger.warning(
+                    "Data is missing ("+str(data)+"), please check!")
+                continue
+            max_len = framerate // 1000 * max_ms
+            trimmed=librosa.util.fix_length(sig, size=max_len)
+            input = trimmed
+            if(type(trimmed[0]) == list):
+                input = trimmed[0]
+            sf.write(data, input, framerate)
+            logger.info("successfully resized audio")
+
+    
+    def time_shift(self, df, shift, output=False):
+        for i in range(df.shape[0]):
+            input_p = df.loc[i, 'Feature']
+            if(output):
+                input_p = df.loc[i, 'Output']
+            output_p = df.loc[i, 'Output']
+            try:
+                data, framerate = librosa.load(input_p, sr=None, mono=False)
+            except:
+                logger.warning(
+                    "Data is missing ("+str(input_p)+"), please check!")
+                continue
+            mod_data = np.roll(data, int(shift))
+            sf.write(output_p, mod_data, framerate)
+
+    
     # Recieving a file and creating a feature out of it
 
     def features_extractor(self,path):
@@ -141,6 +204,11 @@ class DataCleaner:
     # This funtion will recieve a dataframe and return a data frame with features and target as a column
     
     def total_feature_extractor(self,meta_data):
+        """
+        meta_data: dataframe tha contains path to data and other info
+        return type: a dataframe with a column called features that contains
+        an array that 
+        """
         extracted_features=[]
         for index_num,row in tqdm(meta_data.iterrows()):
             if (row['n_channel']!=400):
@@ -156,3 +224,11 @@ class DataCleaner:
         logger.info("Successfully featurized!!!")
         
         return extracted_features_df   
+
+
+    
+
+
+                            
+                
+
