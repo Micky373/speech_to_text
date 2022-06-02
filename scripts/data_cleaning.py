@@ -1,15 +1,17 @@
 import pandas as pd
 import numpy as np
-from regex import D
-from tqdm import tqdm
+# from regex import D
 import sys
 import wave
 import struct
+import array
 import soundfile as sf
 import os
 import librosa  # for audio processing
 import librosa.display
 import logging
+import random
+import soundfile as sf
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -40,9 +42,10 @@ class DataCleaner:
         and adds a new column with the identified number
         """
         n_list = []
-        col = "Feature"
         if(output):
             col = "Output"
+        else:
+            col = "Feature"
         for i in range(df.shape[0]):
             try:
                 data = wave.open(df.loc[i, col], mode='rb')
@@ -54,6 +57,28 @@ class DataCleaner:
         df["n_channel"] = n_list
 
         logger.info("new column successfully added: channels count")
+
+        return df
+
+    def add_duration(self, df, output=False):
+        d_list = []
+        if(output):
+            col = "Output"
+        else:
+            col = "Feature"
+        for i in range(df.shape[0]):
+            try:
+                data = wave.open(df.loc[i, col], mode='rb')
+            except:
+                d_list.append(400)  # 400 means the data is missing
+                continue
+            frames = data.getnframes()
+            rate = data.getframerate()
+            duration = frames / float(rate)
+            d_list.append(duration)
+        df["Duration"] = d_list
+
+        logger.info("new column successfully added: Duration")
 
         return df
 
@@ -71,14 +96,13 @@ class DataCleaner:
             lambda x: path+"/wav/"+x+".wav")
         meta_data['Output'] = meta_data['Feature'].apply(
             lambda x: x.replace(path+"/wav", output))
+        
 
         logger.info("meta data successfully generated")
 
         return meta_data
 
     def make_stereo(self, df):
-        def everyOther(v, offset=0):
-            return [v[i] for i in range(offset, len(v), 2)]
         for i in range(df.shape[0]):
             input_p = df.loc[i, "Feature"]
             output_p = df.loc[i, "Output"]
@@ -89,70 +113,44 @@ class DataCleaner:
                 logger.warning(
                     "Data is missing ("+str(input_p)+"), please check!")
                 continue
-            (nchannels, sampwidth, framerate, nframes,
-             comptype, compname) = ifile.getparams()
-            frames = ifile.readframes(nframes * nchannels)
+            (nchannels, sampwidth, framerate, nframes, comptype, compname) = ifile.getparams()
+            assert comptype == 'NONE'  # Compressed not supported yet
+            array_type = {1:'B', 2: 'h', 4: 'l'}[sampwidth]
+            left_channel = array.array(array_type, ifile.readframes(nframes))[::nchannels]
             ifile.close()
-            out = struct.unpack_from("%dh" % nframes * nchannels, frames)
-            # Convert 2 channels to numpy arrays
-            if nchannels == 2:
-                left = np.array(list(everyOther(out, 0)))
-                right = np.array(list(everyOther(out, 1)))
-            else:
-                left = np.array(out)
-                right = left
-            ofile = wave.open(output_p, 'w')
-            ofile.setparams(
-                (2, sampwidth, framerate, nframes, comptype, compname))
-            ofile.writeframes(left.tostring())
-            ofile.writeframes(right.tostring())
-            ofile.close()
 
+            stereo = 2 * left_channel
+            stereo[0::2] = stereo[1::2] = left_channel
+
+            ofile = wave.open(output_p, 'w')
+            ofile.setparams((2, sampwidth, framerate, nframes, comptype, compname))
+            ofile.writeframes(stereo)
+            ofile.close()
             logger.info("successfully converted channel from mono to stereo")
 
     def standardize(self, df):
         # standardize to 44.1KHz
         for i in range(df.shape[0]):
-            input = df.loc[i, 'Feature']
-            output = df.loc[i, 'Output']
+            data = df.loc[i, 'Output']
             try:
-                ifile = wave.open(input)
+                x, sr = librosa.load(data, sr=44100)
             except:
                 continue
-            (nchannels, sampwidth, framerate, nframes,
-             comptype, compname) = ifile.getparams()
-            ofile = wave.open(output, 'w')
-            ofile.setparams(
-                (nchannels, sampwidth, 44100, nframes, comptype, compname))
-            ofile.close()
-            logger.info("successfully standardized sample rate")
+            sf.write(data, data=x, samplerate=44100)
+            
+    def resize_pad_trunc(self,df,max_ms=4000):
+        # aud, max_ms
 
-    # Recieving a file and creating a feature out of it
+        for i in range(df.shape[0]):
+            data = df.loc[i, 'Output']
+            # Load audio
+            try:
+                sig, framerate = librosa.load(data, sr=44100, mono=False)
+            except:
+                continue
+            max_len = framerate // 1000 * max_ms
+            trimmed=librosa.util.fix_length(sig, size=max_len)
+            sf.write(data, trimmed, framerate)
+                        
+            
 
-    def features_extractor(self,path):
-        audio, _ = librosa.load(path, res_type='kaiser_fast') 
-        mfccs_features = librosa.feature.mfcc(y=audio, n_mfcc=40)
-        mfccs_scaled_features = np.mean(mfccs_features.T,axis=0)
-        
-        return mfccs_scaled_features
-
-    # Now we iterate through every audio file and extract features 
-    # Using Mel-Frequency Cepstral
-    # This funtion will recieve a dataframe and return a data frame with features and target as a column
-    
-    def total_feature_extractor(self,meta_data):
-        extracted_features=[]
-        for index_num,row in tqdm(meta_data.iterrows()):
-            if (row['n_channel']!=400):
-                file_name = row['Feature']
-                final_class_labels=row['Target']
-                data=self.features_extractor(file_name)
-                extracted_features.append([data,final_class_labels])
-            else:
-                continue 
-
-        extracted_features_df = pd.DataFrame(extracted_features,columns=['feature','target'])
-
-        logger.info("Successfully featurized!!!")
-        
-        return extracted_features_df   
