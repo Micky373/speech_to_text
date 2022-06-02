@@ -3,15 +3,13 @@ import numpy as np
 # from regex import D
 import sys
 import wave
-import struct
+from tqdm import tqdm
 import array
 import audioop
 import soundfile as sf
-import os
 import librosa  # for audio processing
 import librosa.display
 import logging
-import random
 import soundfile as sf
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -164,6 +162,8 @@ class DataCleaner:
             try:
                 sig, framerate = librosa.load(data, sr=None, mono=False)
             except:
+                logger.warning(
+                    "Data is missing ("+str(data)+"), please check!")
                 continue
             max_len = framerate // 1000 * max_ms
             trimmed=librosa.util.fix_length(sig, size=max_len)
@@ -171,6 +171,55 @@ class DataCleaner:
             if(type(trimmed[0]) == list):
                 input = trimmed[0]
             sf.write(data, input, framerate)
-                        
-            
+            logger.info("successfully resized audio")
+
+    
+    def time_shift(self, df, shift, output=False):
+        for i in range(df.shape[0]):
+            input_p = df.loc[i, 'Feature']
+            if(output):
+                input_p = df.loc[i, 'Output']
+            output_p = df.loc[i, 'Output']
+            try:
+                data, framerate = librosa.load(input_p, sr=None, mono=False)
+            except:
+                logger.warning(
+                    "Data is missing ("+str(input_p)+"), please check!")
+                continue
+            mod_data = np.roll(data, int(shift))
+            sf.write(output_p, mod_data, framerate)
+
+    
+    # Recieving a file and creating a feature out of it
+
+    def features_extractor(self,path):
+        audio, _ = librosa.load(path, res_type='kaiser_fast') 
+        mfccs_features = librosa.feature.mfcc(y=audio, n_mfcc=40)
+        mfccs_scaled_features = np.mean(mfccs_features.T,axis=0)
+        
+        return mfccs_scaled_features
+
+    # Now we iterate through every audio file and extract features 
+    # Using Mel-Frequency Cepstral
+    # This funtion will recieve a dataframe and return a data frame with features and target as a column
+    
+    def total_feature_extractor(self,meta_data):
+        extracted_features=[]
+        for index_num,row in tqdm(meta_data.iterrows()):
+            if (row['n_channel']!=400):
+                file_name = row['Feature']
+                final_class_labels=row['Target']
+                data=self.features_extractor(file_name)
+                extracted_features.append([data,final_class_labels])
+            else:
+                continue 
+
+        extracted_features_df = pd.DataFrame(extracted_features,columns=['feature','target'])
+
+        logger.info("Successfully featurized!!!")
+        
+        return extracted_features_df   
+
+                            
+                
 

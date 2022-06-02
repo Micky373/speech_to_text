@@ -25,7 +25,7 @@ class Data_Viz():
             len(signal) / f_rate,
             num = len(signal)
         )
-        plt.figure(1)
+        plt.figure(figsize=(15,5))
         plt.title("Sound Wave")
         plt.xlabel("Time")
         plt.plot(time, signal)
