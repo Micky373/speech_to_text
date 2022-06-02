@@ -204,6 +204,11 @@ class DataCleaner:
     # This funtion will recieve a dataframe and return a data frame with features and target as a column
     
     def total_feature_extractor(self,meta_data):
+        """
+        meta_data: dataframe tha contains path to data and other info
+        return type: a dataframe with a column called features that contains
+        an array that 
+        """
         extracted_features=[]
         for index_num,row in tqdm(meta_data.iterrows()):
             if (row['n_channel']!=400):
@@ -221,16 +226,7 @@ class DataCleaner:
         return extracted_features_df   
 
 
-    def plot_spec(data: np.array, sr: int) -> None:
-        '''
-        Function for plotting spectrogram along with amplitude wave graph
-        '''
-
-        fig, ax = plt.subplots(1, 2, figsize=(15, 5))
-        ax[0].title.set_text(f'Shfiting the wave by Times {sr/10}')
-        ax[0].specgram(data, Fs=2)
-        ax[1].set_ylabel('Amplitude')
-        ax[1].plot(np.linspace(0, 1, len(data)), data)
+    
 
 
                             
