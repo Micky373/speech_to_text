@@ -32,7 +32,7 @@ class Data_Viz():
         plt.show()
 
 
-    def plot_spec(data: np.array, sr: int) -> None:
+    def plot_spec(self, data: np.array, sr: int) -> None:
         '''
         Function for plotting spectrogram along with amplitude wave graph
         '''
