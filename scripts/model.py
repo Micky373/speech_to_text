@@ -72,3 +72,20 @@ def compile_test_fn(model):
                         K.learning_phase()],
                         [network_output, ctc_cost])
     return val_fn
+
+def compile_output_fn(model):
+    """ Build a function that simply calculates the output of a model
+    Args:
+        model: A keras model (built=True) instance
+    Returns:
+        output_fn (theano.function): Function that takes in acoustic inputs,
+            and returns network outputs
+    """
+    logger.info("Building val_fn")
+    acoustic_input = model.inputs[0]
+    network_output = model.outputs[0]
+    network_output = network_output.dimshuffle((1, 0, 2))
+
+    output_fn = K.function([acoustic_input, K.learning_phase()],
+                           [network_output])
+    return output_fn
