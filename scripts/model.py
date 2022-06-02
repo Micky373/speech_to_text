@@ -125,3 +125,5 @@ def compile_gru_model(input_dim=161, output_dim=29, recur_layers=3, nodes=1024,
     model.conv_output_length = lambda x: conv_output_length(
         x, conv_context, conv_border_mode, conv_stride)
     return model
+
+    
