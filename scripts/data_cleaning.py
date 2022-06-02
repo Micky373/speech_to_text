@@ -103,9 +103,12 @@ class DataCleaner:
 
         return meta_data
 
-    def make_stereo(self, df):
+    def make_stereo(self, df, output=False):
         for i in range(df.shape[0]):
             input_p = df.loc[i, "Feature"]
+            if(output):
+                input_p = df.loc[i, "Output"]
+            
             output_p = df.loc[i, "Output"]
             try:
                 ifile = wave.open(input_p)
@@ -129,10 +132,14 @@ class DataCleaner:
             ofile.close()
             logger.info("successfully converted channel from mono to stereo")
 
-    def standardize(self, df):
+    def standardize(self, df, output=False):
         # standardize to 44.1KHz
         for i in range(df.shape[0]):
-            input_p = df.loc[i, 'Output']
+            
+            input_p = df.loc[i, 'Feature']
+            if(output):
+                input_p = df.loc[i, 'Output']
+            output_p = df.loc[i, 'Output']
             try:
                 ifile = wave.open(input_p)
             except:
@@ -141,7 +148,7 @@ class DataCleaner:
              comptype, compname) = ifile.getparams()
             frames = ifile.readframes(nframes)
             ifile.close()
-            ofile = wave.open(input_p, 'w')
+            ofile = wave.open(output_p, 'w')
             ofile.setparams(
                 (nchannels, sampwidth, 44100, int(np.round(44100*nframes/framerate,0)), comptype, compname))
             converted = audioop.ratecv(frames, sampwidth, nchannels, framerate, 44100, None)
@@ -154,14 +161,16 @@ class DataCleaner:
 
         for i in range(df.shape[0]):
             data = df.loc[i, 'Output']
-            # Load audio
             try:
-                sig, framerate = librosa.load(data, sr=44100, mono=False)
+                sig, framerate = librosa.load(data, sr=None, mono=False)
             except:
                 continue
             max_len = framerate // 1000 * max_ms
             trimmed=librosa.util.fix_length(sig, size=max_len)
-            sf.write(data, trimmed, framerate)
+            input = trimmed
+            if(type(trimmed[0]) == list):
+                input = trimmed[0]
+            sf.write(data, input, framerate)
                         
             
 
