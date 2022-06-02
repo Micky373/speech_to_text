@@ -5,6 +5,7 @@ import sys
 import wave
 import struct
 import array
+import audioop
 import soundfile as sf
 import os
 import librosa  # for audio processing
@@ -143,7 +144,8 @@ class DataCleaner:
             ofile = wave.open(input_p, 'w')
             ofile.setparams(
                 (nchannels, sampwidth, 44100, int(np.round(44100*nframes/framerate,0)), comptype, compname))
-            ofile.writeframes(frames)
+            converted = audioop.ratecv(frames, sampwidth, nchannels, framerate, 44100, None)
+            ofile.writeframes(converted[0])
             ofile.close()
             logger.info("successfully standardized sample rate")
             
