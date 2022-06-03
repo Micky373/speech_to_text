@@ -34,11 +34,13 @@ jupyter notebook
 ```
 
 - **Model Training ui (Not implemented yet)**
+
 ```
 mlflow ui
 ```
 
 - **Dashboard (Not implemented yet)**
+
 ```
 streamlit run app.py
 ```
