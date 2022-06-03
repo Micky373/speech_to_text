@@ -11,6 +11,7 @@ In this project we are going to build deep learning model  to process and conver
 - [Technologies used](#technologies-used)
 
 ### Introduction
+
 The World Food Program wants to deploy an intelligent form that collects nutritional information of food bought and sold at markets in three different countries in Africa - Ethiopia and Kenya.  
 
 The design of this intelligent form requires selected people to install an app on their mobile phone, and whenever they buy food, they use their voice to activate the app to register the list of items they just bought in their own language. The intelligent systems in the app are expected to live to transcribe the speech-to-text and organize the information in an easy-to-process way in a database. 
