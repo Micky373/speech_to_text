@@ -72,6 +72,7 @@ The folder is being tarcked with DVC and the files are only shown after cloning 
 
 
 ## Contributors
+
 1. [Celine Hirwa](https://github.com/celine-kanagwa)
 2. [Biniyam Belayneh Demisse](https://github.com/benbel376)
 3. [Michael Tamirie](https://github.com/Micky373)
