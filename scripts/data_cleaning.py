@@ -49,6 +49,8 @@ class DataCleaner:
             jsonContent = fileObject.read()
             aList = json.loads(jsonContent)
             df = pd.DataFrame.from_dict(eval(aList))
+            df["Feature"] = df["Feature"].apply(lambda x: x.replace("\\", ""))
+            df["Output"] = df["Output"].apply(lambda x: x.replace("\\", ""))
         elif(type=="csv"):
             df = pd.read_csv(path)
         else:
