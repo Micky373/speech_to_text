@@ -35,6 +35,17 @@ class DataCleaner:
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
 
+    # dataset shuffling
+    def shuffle_data(self, df):
+        """
+        df: meta_data dataframe that has the path info for the data
+        """
+        selection = df[df["Duration"] != 400]
+        shuffled_meta = selection.sample(frac=1, random_state=1).reset_index().drop("index", axis=1)
+        
+        return shuffled_meta
+
+
     def channel_count(self, df, output=False):
         """
         It identifies number of channels in the audio files
