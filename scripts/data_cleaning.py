@@ -35,6 +35,31 @@ class DataCleaner:
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
 
+    # splitting data 
+    def split(self, df, tr, state):
+        """
+        df: meta data to be splitted
+        tr: percentage of train data set
+        state: the state of sampling for repeating split
+        """
+        shuffled = self.shuffle_data(df, state)
+        train_index = round(len(shuffled)*(tr/100))
+        train_df = shuffled.head(train_index)
+        test_df = shuffled.loc[train_index:len(shuffled), :]
+
+        return [train_df, test_df]
+
+    # dataset shuffling
+    def shuffle_data(self, df, state):
+        """
+        df: meta_data dataframe that has the path info for the data
+        """
+        selection = df[df["Duration"] != 400]
+        shuffled_meta = selection.sample(frac=1, random_state=state).reset_index().drop("index", axis=1)
+        
+        return shuffled_meta
+
+
     def channel_count(self, df, output=False):
         """
         It identifies number of channels in the audio files
