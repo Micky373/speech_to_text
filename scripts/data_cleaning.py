@@ -35,6 +35,25 @@ class DataCleaner:
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
 
+    # saving data 
+    def saver(self, df, path, type):
+        """
+        df: dataframe to save 
+        path: location and name of file
+        type: saving type: csv or json
+        """
+        if(type == "json"):
+            file_json = df.to_json(orient="columns")
+            json_string = json.dumps(file_json)
+            jsonFile = open(path, "w")
+            jsonFile.write(json_string)
+            jsonFile.close()
+        elif(type == "csv"):
+            df.to_csv(path)
+        else:
+            print("Only csv and json file formats are allowed!")
+
+
     # splitting data 
     def split(self, df, tr, state):
         """
