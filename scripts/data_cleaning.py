@@ -3,8 +3,10 @@ import numpy as np
 # from regex import D
 import sys
 import wave
+import codecs
 from tqdm import tqdm
 import array
+import json
 import audioop
 import soundfile as sf
 import librosa  # for audio processing
@@ -35,8 +37,32 @@ class DataCleaner:
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
 
+
+    def meta_loader(self, path, type):
+        """
+        path: path to files to be loaded
+        type: type of the file to be loaded
+        return: a dataframe version of the loaded file
+        """
+        if (type == "json"):
+            fileObject = open(path, "r")
+            jsonContent = fileObject.read()
+            aList = json.loads(jsonContent)
+            df = pd.DataFrame.from_dict(eval(aList))
+        elif(type=="csv"):
+            df = pd.read_csv(path)
+        else:
+            print("Only json and csv files are loaded")
+            logger.warning("Format Unknown")
+
+        logger.info("Dataframe successfully loaded")
+
+        return df
+
+
+
     # saving data 
-    def saver(self, df, path, type):
+    def meta_saver(self, df, path, type):
         """
         df: dataframe to save 
         path: location and name of file
@@ -44,15 +70,15 @@ class DataCleaner:
         """
         if(type == "json"):
             file_json = df.to_json(orient="columns")
-            json_string = json.dumps(file_json)
-            jsonFile = open(path, "w")
-            jsonFile.write(json_string)
-            jsonFile.close()
+            with codecs.open(path, 'w', encoding='utf-8') as f:
+                json.dump(file_json, f, ensure_ascii=False)
         elif(type == "csv"):
             df.to_csv(path)
         else:
             print("Only csv and json file formats are allowed!")
+            logger.warning("format Unknown")
 
+        logger.info("Dataframe successfully saved as "+type+" file")
 
     # splitting data 
     def split(self, df, tr, state):
