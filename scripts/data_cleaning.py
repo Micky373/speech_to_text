@@ -1,3 +1,5 @@
+import audioop
+import codecs
 import pandas as pd
 import numpy as np
 from regex import D
@@ -6,7 +8,7 @@ import sys
 import wave
 import struct
 import soundfile as sf
-import os
+import json
 import librosa  # for audio processing
 import librosa.display
 import logging
@@ -33,6 +35,15 @@ class DataCleaner:
             "time: %(asctime)s, function: %(funcName)s, module: %(name)s, message: %(message)s \n")
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
+     
+    def shuffle_data(self, df, state):
+        """
+        df: meta_data dataframe that has the path info for the data
+        """
+        selection = df[df["Duration"] != 400]
+        shuffled_meta = selection.sample(frac=1, random_state=state).reset_index().drop("index", axis=1)
+        
+        return shuffled_meta
 
     def channel_count(self, df, output=False):
         """
@@ -126,7 +137,28 @@ class DataCleaner:
                 (nchannels, sampwidth, 44100, nframes, comptype, compname))
             ofile.close()
             logger.info("successfully standardized sample rate")
+       
+    def add_duration(self, df, output=False):
+            d_list = []
+            if(output):
+                col = "Output"
+            else:
+                col = "Feature"
+            for i in range(df.shape[0]):
+                try:
+                    data = wave.open(df.loc[i, col], mode='rb')
+                except:
+                    d_list.append(400)  # 400 means the data is missing
+                    continue
+                frames = data.getnframes()
+                rate = data.getframerate()
+                duration = frames / float(rate)
+                d_list.append(duration)
+            df["Duration"] = d_list
 
+            logger.info("new column successfully added: Duration")
+            return df
+    
     # Recieving a file and creating a feature out of it
 
     def features_extractor(self,path):
@@ -156,3 +188,62 @@ class DataCleaner:
         logger.info("Successfully featurized!!!")
         
         return extracted_features_df   
+    
+    def meta_loader(self, path, type):
+        """
+        path: path of the files to be loaded
+        type: type of the file to be loaded
+        return: a dataframe of the loaded file
+        """
+        if (type == "json"):
+            fileObject = open(path, "r")
+            jsonContent = fileObject.read()
+            aList = json.loads(jsonContent)
+            df = pd.DataFrame.from_dict(eval(aList))
+            df["Feature"] = df["Feature"].apply(lambda x: x.replace("\\", ""))
+            df["Output"] = df["Output"].apply(lambda x: x.replace("\\", ""))
+        elif(type=="csv"):
+            df = pd.read_csv(path)
+        else:
+            print("Only json and csv files are loaded")
+            logger.warning("Format Unknown")
+
+        logger.info("Dataframe successfully loaded")
+
+        return df
+      
+    def meta_saver(self, df, path, type):
+        """
+        df: dataframe to save 
+        path: location and name of file
+        type: saving type: csv or json
+        """
+        if(type == "json"):
+            file_json = df.to_json(orient="columns")
+            with codecs.open(path, 'w', encoding='utf-8') as f:
+                json.dump(file_json, f, ensure_ascii=False)
+        elif(type == "csv"):
+            df.to_csv(path)
+        else:
+            print("Only csv and json file formats are allowed!")
+            logger.warning("format Unknown")
+
+        logger.info("Dataframe successfully saved as "+type+" file")
+     
+    
+    def split(self, df, tr, state):
+        """
+        df: meta data to be splitted
+        tr: percentage of train data set
+        state: the state of sampling for repeating split
+        """
+        shuffled = self.shuffle_data(df, state)
+        train_index = round(len(shuffled)*(tr/100))
+        train_df = shuffled.head(train_index)
+        test_df = shuffled.loc[train_index:len(shuffled), :]
+
+        return [train_df, test_df]
+    
+    
+          
+
