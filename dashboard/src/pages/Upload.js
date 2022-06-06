@@ -1,10 +1,12 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 function Upload() {
+  const [text, setText] = useState("");
+
   useEffect(() => {
     fetch("/output").then((response) =>
       response.json().then((data) => {
-        console.log(data);
+        setText(data);
       })
     );
   }, []);
@@ -16,7 +18,9 @@ function Upload() {
         <div className="border-5 w-[700px] mt-10 p-2">
           <h1 className="text-center">Upload file</h1>
         </div>
-        <div className="border-5 w-[700px] h-[700px] mt-10 pt-10"></div>
+        <div className="border-5 w-[700px] h-[700px] mt-10 pt-10">
+          <p>{text}</p>
+        </div>
       </div>
     </div>
   );
