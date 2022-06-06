@@ -136,3 +136,11 @@ class Mapping():
             ch = char_map[c]
         int_sequence.append(ch)
     return int_sequence
+
+  def int_sequence_to_text(int_sequence,index_map):
+    """ Convert an integer sequence to text """
+    text = []
+    for c in int_sequence:
+        ch = index_map[c]
+        text.append(ch)
+    return text
