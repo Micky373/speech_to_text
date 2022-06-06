@@ -121,3 +121,18 @@ class Spectogram():
         ind = np.where(freqs <= max_freq)[0][-1] + 1
         
     return np.transpose(np.log(pxx[:ind, :] + eps))
+
+class Mapping():
+
+  def text_to_int_sequence(text,char_map):
+    """ Convert text to an integer sequence """
+    int_sequence = []
+    for c in text:
+        if c == ' ':
+            ch = char_map['<SPACE>']
+        else:
+            # print("checking character " + c + " in map:")
+            # print(char_map)
+            ch = char_map[c]
+        int_sequence.append(ch)
+    return int_sequence
