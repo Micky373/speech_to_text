@@ -1,2 +1,24 @@
 /data/*
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# dependencies
+dashboard/node_modules
+dashboard/.pnp
+dashboard/.pnp.js
+
+# testing
+dashboard/coverage
+
+# production
+dashboard/build
+
+# misc
+dashboard.DS_Store
+dashboard.env.local
+dashboard.env.development.local
+dashboard.env.test.local
+dashboard.env.production.local
+
+dashboardnpm-debug.log*
+dashboardyarn-debug.log*
+dashboardyarn-error.log*
