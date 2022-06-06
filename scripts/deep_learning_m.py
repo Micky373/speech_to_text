@@ -21,3 +21,13 @@ class Separating():
           if os.path.isfile(source_valid):
                 shutil.copy(source_valid, destination_valid)
         i+=1
+
+class Replacing():
+
+  # replace redundant letters
+  def replacer(text):
+      replace_list = """ሐ ሑ ሒ ሓ ሔ ሕ ሖ ጸ ጹ ጺ ጻ ጼ ጽ ጾ ኰ ኲ ጿ ኸ""".split(" ")
+      ph = """ሀ ሁ ሂ ሀ ሄ ህ ሆ ፀ ፁ ፂ ፃ ፄ ፅ ፆ ኮ ኳ ፇ ኧ""".split(" ")
+      for l in range(len(replace_list)):
+        text = text.replace(replace_list[l], ph[l])
+      return text
