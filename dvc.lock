@@ -1,0 +1,15 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python src/clean_data.py
+    deps:
+    - path: data/train/trsTrain.txt
+      md5: 30a0729d75e0747ab009088d17afc550
+      size: 1804086
+    - path: data/train/wav
+      md5: 3e173c983edbb5106a15b89b9d50db5a.dir
+      size: 172834720
+      nfiles: 1000
+    - path: src/clean_data.py
+      md5: 461ff199d0c2f6dca4934013eeebea67
+      size: 3598

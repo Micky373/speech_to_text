@@ -227,7 +227,7 @@ class DataCleaner:
 
 
 
-    def standardize(self, df, output=False):
+    def standardize(self, df, rate, output=False):
         # standardize to 44.1KHz
         for i in range(df.shape[0]):
             
@@ -245,7 +245,7 @@ class DataCleaner:
             ifile.close()
             ofile = wave.open(output_p, 'w')
             ofile.setparams(
-                (nchannels, sampwidth, 44100, int(np.round(44100*nframes/framerate,0)), comptype, compname))
+                (nchannels, sampwidth, rate, int(np.round(44100*nframes/framerate,0)), comptype, compname))
             converted = audioop.ratecv(frames, sampwidth, nchannels, framerate, 44100, None)
             ofile.writeframes(converted[0])
             ofile.close()

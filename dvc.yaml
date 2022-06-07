@@ -1,0 +1,7 @@
+stages:
+  prepare:
+    cmd: python src/clean_data.py
+    deps:
+    - data/train/trsTrain.txt
+    - data/train/wav
+    - src/clean_data.py

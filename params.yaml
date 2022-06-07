@@ -1,0 +1,12 @@
+prepare:
+  RATE: 44100
+  
+train:
+  MIN_BATCH_SIZE: 1
+  MFCC_DIME: 13
+  WINDOW: 20          # in ms
+  STEP: 10            # in ms
+  MAX_FREQ: 8000      # in Hz
+  MODEL_NAME: "RNN_model"
+  EPOCHS: 5
+  NFFT: 1024

@@ -46120,3 +46120,7 @@ time: 2022-06-07 04:05:47,147, function: meta_loader, module: data_cleaning, mes
 
 time: 2022-06-07 04:05:47,253, function: meta_loader, module: data_cleaning, message: Dataframe successfully loaded 
 
+time: 2022-06-07 11:55:31,418, function: generate_metadata, module: data_cleaning, message: meta data successfully generated 
+
+time: 2022-06-07 11:55:55,239, function: add_duration, module: data_cleaning, message: new column successfully added: Duration 
+
