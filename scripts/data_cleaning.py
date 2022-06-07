@@ -52,8 +52,6 @@ class DataCleaner:
         return max_dur
 
 
-
-
     def meta_loader(self, path, type):
         """
         path: path to files to be loaded
