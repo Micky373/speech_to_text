@@ -35,7 +35,40 @@ class DataCleaner:
             "time: %(asctime)s, function: %(funcName)s, module: %(name)s, message: %(message)s \n")
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
-     
+    
+    
+    def get_max_dur(self, df):
+        """
+        df: meta_data dataframe
+        return: maximum duration.
+        """
+        df = df.loc[df["Duration"]!=400]
+        df["Duration"] = df["Duration"].astype(int)
+        df_sorted = df.sort_values(by="Duration", ascending=False).reset_index()
+        max_dur = (int(df_sorted.head()["Duration"][0])+1)*1000
+        print("maximum duration: "+str(max_dur/1000))
+
+        return max_dur
+    
+    def resize_pad_trunc(self,df,max_ms=4000):
+        # aud, max_ms
+
+        for i in range(df.shape[0]):
+            data = df.loc[i, 'Output']
+            try:
+                sig, framerate = librosa.load(data, sr=None, mono=False)
+            except:
+                logger.warning(
+                    "Data is missing ("+str(data)+"), please check!")
+                continue
+            max_len = framerate // 1000 * max_ms
+            trimmed=librosa.util.fix_length(sig, size=max_len)
+            input = trimmed
+            if(type(trimmed[0]) == list):
+                input = trimmed[0]
+            sf.write(data, input, framerate)
+            logger.info("successfully resized audio")
+    
     def shuffle_data(self, df, state):
         """
         df: meta_data dataframe that has the path info for the data
@@ -244,6 +277,23 @@ class DataCleaner:
 
         return [train_df, test_df]
     
+    
+    
+    def time_shift(self, df, shift, output=False):
+        for i in range(df.shape[0]):
+            input_p = df.loc[i, 'Feature']
+            if(output):
+                input_p = df.loc[i, 'Output']
+            output_p = df.loc[i, 'Output']
+            try:
+                data, framerate = librosa.load(input_p, sr=None, mono=False)
+            except:
+                logger.warning(
+                    "Data is missing ("+str(input_p)+"), please check!")
+                continue
+            mod_data = np.roll(data, int(shift))
+            sf.write(output_p, mod_data, framerate)
+        
     
           
 
