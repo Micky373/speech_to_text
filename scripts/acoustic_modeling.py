@@ -86,8 +86,8 @@ print(
 
 
 class AudioGenerator():
-    def __init__(self,  train_meta, valid_meta, step=10, window=20, max_freq=8000, mfcc_dim=13,
-        minibatch_size=20):
+    def __init__(self,  train_meta, valid_meta, minibatch_size, step, window, max_freq, mfcc_dim,
+        nfft):
         """
         Params:
             step (int): Step size in milliseconds between windows (for spectrogram ONLY)
@@ -105,6 +105,7 @@ class AudioGenerator():
         self.rng = random.Random(RNG_SEED)
         self.step = step
         self.window = window
+        self.nfft = nfft
         self.train_meta = train_meta
         self.valid_meta = valid_meta
         self.max_freq = max_freq
@@ -247,7 +248,7 @@ class AudioGenerator():
             audio_clip (str): Path to the audio clip
         """
         (rate, sig) = wav.read(audio_clip)
-        return mfcc(sig, rate, winlen=(self.window*0.001), winstep=(self.step*0.001), nfft=1024, numcep=self.mfcc_dim, )
+        return mfcc(sig, rate, winlen=(self.window*0.001), winstep=(self.step*0.001), nfft=self.nfft, numcep=self.mfcc_dim, )
 
     def normalize(self, feature, eps=1e-14):
         """ Center a feature using the mean and std
@@ -457,7 +458,9 @@ def model_1(input_dim, units, activation, output_dim=29):
     y_pred = Activation('softmax', name='softmax')(time_dense)
     # Specify the model
     model = Model(inputs=input_data, outputs=y_pred)
-    model.output_length = lambda x: x
+    def identity(x):
+        return x
+    model.output_length = identity
     print(model.summary())
     #plot_model(model, to_file='../models/model_1.png')
     return model
@@ -485,9 +488,9 @@ def add_ctc_loss(input_to_softmax):
 def train(audio_gen,
           input_to_softmax, 
           model_name,
-          minibatch_size=20,
-          epochs=20,
-          verbose=1):    
+          minibatch_size,
+          epochs,
+          verbose):    
     # calculate steps_per_epoch
     num_train_examples=len(audio_gen.train_audio_paths)
     steps_per_epoch = num_train_examples//minibatch_size
@@ -509,7 +512,7 @@ def train(audio_gen,
     checkpointer = ModelCheckpoint(filepath='../models/'+model_name+'.h5', verbose=0)
 
     # train the model
-    hist = model.fit(audio_gen.next_train(),epochs=epochs, batch_size=minibatch_size, verbose=2, 
+    hist = model.fit(audio_gen.next_train(),epochs=epochs, batch_size=minibatch_size, verbose=verbose, callbacks=checkpointer,
          validation_data=audio_gen.next_valid(), steps_per_epoch=steps_per_epoch, validation_steps=validation_steps,
          use_multiprocessing=False)
 
@@ -530,7 +533,7 @@ def predict(data_gen, index, partition, model, verbose=True):
     output_length = [model.output_length(data_point.shape[0])]
     pred_ints = (K.eval(K.ctc_decode(
                 prediction, output_length, greedy=False)[0][0])+1).flatten().tolist()
-    predicted = ''.join(int_sequence_to_text(pred_ints)).replace("<SPACE>", " ")
+    predicted = ''.join(int_sequence_to_text(pred_ints)).replace(" ", " ")
     wer_val = wer(transcr, predicted)
     if verbose:
         #display(Audio(audio_path, embed=True))
