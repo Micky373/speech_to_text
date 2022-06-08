@@ -1,0 +1,4 @@
+outs:
+- md5: 452aa405d9aea21eb5461c56f4af4a19
+  size: 39022
+  path: data/test_meta.csv

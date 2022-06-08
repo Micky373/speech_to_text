@@ -1,0 +1,4 @@
+outs:
+- md5: 7f27e51c9b18d21cad45d556cefe912e
+  size: 157303
+  path: data/train_meta.csv
