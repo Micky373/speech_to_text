@@ -1,11 +1,24 @@
 import librosa
 import numpy as np
+import logging
+import codecs
+
+import json
 import soundfile as sf
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 class Cleaner:
 
-    def __init__(self):
-        pass
+    def __init__(self, filehandler) -> None:
+        """
+        initilize logger
+        """
+        file_handler = logging.FileHandler(filehandler)
+        formatter = logging.Formatter(
+            "time: %(asctime)s, function: %(funcName)s, module: %(name)s, message: %(message)s \n")
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
 
     def change_rate(self, audio, sr):
         """
@@ -14,6 +27,8 @@ class Cleaner:
         return: resampled audio array with sampling rate
         """
         resampled = librosa.resample(audio[0], orig_sr=audio[1], target_sr=sr)
+        
+        logger.info("rate changed")
         
         return [resampled, sr]
 
@@ -76,6 +91,26 @@ class Cleaner:
                 f.write(np.transpose(audio[0]))
         else:
             sf.write(path, audio[0], audio[1])
+
+
+    # saving data 
+    def meta_saver(self, df, path, type):
+        """
+        df: dataframe to save 
+        path: location and name of file
+        type: saving type: csv or json
+        """
+        if(type == "json"):
+            file_json = df.to_json(orient="columns")
+            with codecs.open(path, 'w', encoding='utf-8') as f:
+                json.dump(file_json, f, ensure_ascii=False)
+        elif(type == "csv"):
+            df.to_csv(path)
+        else:
+            print("Only csv and json file formats are allowed!")
+            logger.warning("format Unknown")
+
+        logger.info("Dataframe successfully saved as "+type+" file")
         
 if __name__ == "__main__":
     inst = Cleaner()
