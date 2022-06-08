@@ -251,27 +251,39 @@ class DataCleaner:
             ofile.close()
             logger.info("successfully standardized sample rate")
             
-    def resize_pad_trunc(self,df,max_ms=4000):
-        # aud, max_ms
-
+    def resize_pad_trunc(self,df,max_ms=4000, output=False):
+        """
+        df: metadata dataframe
+        max_ms: audio duration to resize to
+        output: whether to use the output path as input or not
+        """
         for i in range(df.shape[0]):
-            data = df.loc[i, 'Output']
+            input_p = df.loc[i, 'Feature']
+            if(output):
+                input_p = df.loc[i, 'Output']
+            output_p = df.loc[i, 'Output']
+
             try:
-                sig, framerate = librosa.load(data, sr=None, mono=False)
+                sig, framerate = librosa.load(input_p, sr=None, mono=False)
             except:
                 logger.warning(
-                    "Data is missing ("+str(data)+"), please check!")
+                    "Data is missing ("+str(input_p)+"), please check!")
                 continue
             max_len = framerate // 1000 * max_ms
             trimmed=librosa.util.fix_length(sig, size=max_len)
             input = trimmed
             if(type(trimmed[0]) == list):
                 input = trimmed[0]
-            sf.write(data, input, framerate)
+            sf.write(output_p, input, framerate)
             logger.info("successfully resized audio")
 
     
     def time_shift(self, df, shift, output=False):
+        """
+        df: metadata dataframe
+        shift: the shift amount for the audios
+        output: whether to use the output path as input or not
+        """
         for i in range(df.shape[0]):
             input_p = df.loc[i, 'Feature']
             if(output):
@@ -285,6 +297,7 @@ class DataCleaner:
                 continue
             mod_data = np.roll(data, int(shift))
             sf.write(output_p, mod_data, framerate)
+            logger.info("successfully shifted audio")
 
     
     # Recieving a file and creating a feature out of it

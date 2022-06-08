@@ -1,0 +1,4 @@
+artifact_location: file:///C:/10/speech_to_text/notebooks/mlruns/1
+experiment_id: '1'
+lifecycle_stage: active
+name: Transcription_Tests
