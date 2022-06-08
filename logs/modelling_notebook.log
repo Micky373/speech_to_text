@@ -148,3 +148,7 @@ time: 2022-06-08 12:42:41,837, function: meta_loader, module: data_cleaning, mes
 
 time: 2022-06-08 12:42:41,837, function: meta_loader, module: data_cleaning, message: Dataframe successfully loaded 
 
+time: 2022-06-08 12:57:29,738, function: meta_loader, module: data_cleaning, message: Dataframe successfully loaded 
+
+time: 2022-06-08 12:57:29,753, function: meta_loader, module: data_cleaning, message: Dataframe successfully loaded 
+
