@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import UploadAudio from "../components/UploadAudio";
 import axios from "axios";
+import DotLoader from "react-spinners/DotLoader";
 
 var URLst = "";
 
@@ -8,6 +9,7 @@ function Upload() {
   const inputFile = useRef(null);
 
   const [text, setText] = useState("");
+  const [loading, setLoading] = useState(false);
   const [selectedFile, setFile] = useState("");
   const onButtonClick = () => {
     // `current` points to the mounted file input element
@@ -24,6 +26,7 @@ function Upload() {
   function postData() {
     var formData = new FormData();
     formData.append("file", selectedFile);
+    setLoading(true);
     axios({
       method: "Post",
       url: "https://afri-speech-to-text.herokuapp.com/get_file",
@@ -33,13 +36,19 @@ function Upload() {
       .then((res) => {
         console.log(res.data);
         setText(res.data.success);
+        setLoading(false);
       })
       .catch(function (error) {
         console.log(error);
+        setLoading(false);
       });
   }
 
-  return (
+  return loading ? (
+    <div className="w-full h-full backdrop-blur-xl bg-white/30 flex items-center justify-center">
+      <DotLoader />
+    </div>
+  ) : (
     <div className=" h-full w-full pt-10 flex items-center justify-center">
       <div className="">
         <h1 className="text-center font-extralight text-3xl">
