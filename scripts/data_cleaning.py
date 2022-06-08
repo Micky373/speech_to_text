@@ -11,10 +11,7 @@ import array
 import json
 import audioop
 import soundfile as sf
-<<<<<<< HEAD
-=======
 import json
->>>>>>> 32b92ffc307b4c05dd623b4a59f4d684733f2631
 import librosa  # for audio processing
 import librosa.display
 import logging
@@ -296,44 +293,6 @@ class DataCleaner:
             ofile.writeframes(converted[0])
             ofile.close()
             logger.info("successfully standardized sample rate")
-<<<<<<< HEAD
-            
-    def resize_pad_trunc(self,df,max_ms=4000):
-        # aud, max_ms
-
-        for i in range(df.shape[0]):
-            data = df.loc[i, 'Output']
-            try:
-                sig, framerate = librosa.load(data, sr=None, mono=False)
-            except:
-                logger.warning(
-                    "Data is missing ("+str(data)+"), please check!")
-                continue
-            max_len = framerate // 1000 * max_ms
-            trimmed=librosa.util.fix_length(sig, size=max_len)
-            input = trimmed
-            if(type(trimmed[0]) == list):
-                input = trimmed[0]
-            sf.write(data, input, framerate)
-            logger.info("successfully resized audio")
-
-    
-    def time_shift(self, df, shift, output=False):
-        for i in range(df.shape[0]):
-            input_p = df.loc[i, 'Feature']
-            if(output):
-                input_p = df.loc[i, 'Output']
-            output_p = df.loc[i, 'Output']
-            try:
-                data, framerate = librosa.load(input_p, sr=None, mono=False)
-            except:
-                logger.warning(
-                    "Data is missing ("+str(input_p)+"), please check!")
-                continue
-            mod_data = np.roll(data, int(shift))
-            sf.write(output_p, mod_data, framerate)
-
-=======
        
     def add_duration(self, df, output=False):
             d_list = []
@@ -355,7 +314,6 @@ class DataCleaner:
 
             logger.info("new column successfully added: Duration")
             return df
->>>>>>> 32b92ffc307b4c05dd623b4a59f4d684733f2631
     
     # Recieving a file and creating a feature out of it
 
@@ -391,8 +349,6 @@ class DataCleaner:
         logger.info("Successfully featurized!!!")
         
         return extracted_features_df   
-<<<<<<< HEAD
-=======
     
     def meta_loader(self, path, type):
         """
@@ -468,5 +424,4 @@ class DataCleaner:
         
     
           
->>>>>>> 32b92ffc307b4c05dd623b4a59f4d684733f2631
 
