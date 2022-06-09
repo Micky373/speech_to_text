@@ -2,7 +2,10 @@ import librosa
 import numpy as np
 import logging
 import codecs
-
+import os
+import math
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import FunctionTransformer
 import json
 import soundfile as sf
 logger = logging.getLogger(__name__)
@@ -19,6 +22,48 @@ class AudioCleaner:
             "time: %(asctime)s, function: %(funcName)s, module: %(name)s, message: %(message)s \n")
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
+
+
+    def batch_iterator(self, meta, pipe):
+        """
+        meta: dataframe with audio path information
+        pipe: data cleaning pipe to take each loaded audio through
+        return: none
+        """
+    
+        for i in range(len(meta)):
+
+            if(i==1):
+                print("Audio Processing Started...")
+
+            try:
+                sam, rat = self.load_audio(meta.loc[i, "Feature"])
+                audio = [sam, rat]
+            except:
+                continue
+            
+            p_audio = pipe.fit_transform(audio)
+            self.save_audio(p_audio, meta.loc[i, "Output"])
+            # progress update
+
+            
+
+
+    def build_pipe(self, param):
+        """
+        ACL: AudioCleaner class instance
+        Param: fixed parameters to apply to samples
+        """
+        pipe = Pipeline(steps = [
+                                ("make stereo", FunctionTransformer(self.change_to_stereo)),
+                                ("change rate", FunctionTransformer(self.change_rate, kw_args={"sr":param[0]})), 
+                                ("change length", FunctionTransformer(self.change_duration, kw_args={"max_ms":param[1]})),
+                                ("augument", FunctionTransformer(self.time_shift))
+                                ])
+        print("Pipeline Ready!\n")
+        return pipe
+
+
 
     def change_rate(self, audio, sr):
         """

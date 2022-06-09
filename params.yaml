@@ -1,6 +1,7 @@
 prepare:
   RATE: 44100
-  
+  DURATION: 10100
+
 train:
   MIN_BATCH_SIZE: 1
   MFCC_DIME: 13
