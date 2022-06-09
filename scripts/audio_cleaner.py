@@ -81,36 +81,18 @@ class AudioCleaner:
         return [samples, sample_rate]
 
 
-    def save_audio(self, path, audio):
+    def save_audio(self, audio, path):
         """
         audio: a list that contains audio sample and rate
         path: location and name of new file
         """
+        
         if(len(audio[0])==2):
             with sf.SoundFile(path, 'w', audio[1], 2, 'PCM_24') as f:
                 f.write(np.transpose(audio[0]))
         else:
             sf.write(path, audio[0], audio[1])
 
-
-    # saving data 
-    def meta_saver(self, df, path, type):
-        """
-        df: dataframe to save 
-        path: location and name of file
-        type: saving type: csv or json
-        """
-        if(type == "json"):
-            file_json = df.to_json(orient="columns")
-            with codecs.open(path, 'w', encoding='utf-8') as f:
-                json.dump(file_json, f, ensure_ascii=False)
-        elif(type == "csv"):
-            df.to_csv(path)
-        else:
-            print("Only csv and json file formats are allowed!")
-            logger.warning("format Unknown")
-
-        logger.info("Dataframe successfully saved as "+type+" file")
         
 if __name__ == "__main__":
     inst = Cleaner()
