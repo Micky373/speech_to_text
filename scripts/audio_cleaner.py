@@ -8,7 +8,7 @@ import soundfile as sf
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-class Cleaner:
+class AudioCleaner:
 
     def __init__(self, filehandler) -> None:
         """

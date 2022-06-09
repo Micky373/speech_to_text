@@ -22,7 +22,7 @@ sys.path.append("..")
 sys.path.append(".")
 
 
-class DataCleaner:
+class MetaCleaner:
     """
     class that handles data cleaning.
     """
