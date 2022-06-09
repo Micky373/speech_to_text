@@ -4,10 +4,10 @@ function Home() {
   return (
     <div className=" h-full w-full border-solid border-red-500 border-2">
       <div className="">
-        <h1 className="text-center pt-56 pb-9 font-mono text-3xl">
+        <h1 className="text-center pt-56 pb-9 font-mono font-extrabold text-4xl">
           INTRODUCTION
         </h1>
-        <div className="font-extralight p-10 text-2xl ">
+        <div className="font-extralight p-20 text-2xl ">
           <p>
             The World Food Program wants to deploy an intelligent form that
             collects nutritional information of food bought and sold at markets
