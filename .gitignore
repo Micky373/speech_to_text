@@ -8,7 +8,7 @@ dashboard/.pnp.js
 
 # testing
 dashboard/coverage
-
+dashboard/API/api_utils/*
 # production
 dashboard/build
 
