@@ -202,8 +202,10 @@ class DataCleaner:
             ofile.close()
             logger.info("successfully converted channel from mono to stereo")
 
+
     def standardize(self, df, output=False):
         # standardize to 44.1KHz
+
         for i in range(df.shape[0]):
             
             input_p = df.loc[i, 'Feature']
