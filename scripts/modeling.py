@@ -9,14 +9,14 @@ import wave
 import mlflow
 from jiwer import wer
 
-# An integer scalar Tensor. The window length in samples.
-frame_length = 256 #this should be less than or equal to fft length
-# An integer scalar Tensor. The number of samples to step.
-frame_step = STEP
-# An integer scalar Tensor. The size of the FFT to apply.
-# If not provided, uses the smallest power of 2 enclosing frame_length.
-fft_length = MFCC_DIME
-# The set of characters accepted in the transcription.
+# # An integer scalar Tensor. The window length in samples.
+# frame_length = 256 #this should be less than or equal to fft length
+# # An integer scalar Tensor. The number of samples to step.
+# frame_step = STEP
+# # An integer scalar Tensor. The size of the FFT to apply.
+# # If not provided, uses the smallest power of 2 enclosing frame_length.
+# fft_length = MFCC_DIME
+# # The set of characters accepted in the transcription.
 characters = """
 ሀ ሁ ሂ ሄ ህ ሆ
 ለ ሉ ሊ ላ ሌ ል ሎ ሏ
@@ -49,7 +49,7 @@ characters = """
 ፀ ፁ ፂ ፃ ፄ ፅ ፆ ፇ
 ፈ ፉ ፊ ፋ ፌ ፍ ፎ ፏ
 ፐ ፑ ፒ ፓ ፔ ፕ ፖ
-""".replace('\n',' ').split(' ')
+""".replace('\n', ' ').split(' ')
 characters = characters[:-1]
 characters.insert(1, ' ')
 
@@ -60,43 +60,45 @@ num_to_char = keras.layers.StringLookup(
     vocabulary=char_to_num.get_vocabulary(), oov_token="", invert=True
 )
 
+
 class Modeling():
     """
     Building Model
     training the model
     Evaluating the model performance
     """
-    
+
     def __init__(self) -> None:
         pass
-        
-    def encode_single_sample(self, wav_file, label):
+
+    def encode_single_sample(self, wav_file, label, frame_step, frame_length, fft_length):
         """
         Process the Audio
-        
+
         """
-        #read wav file
+        # read wav file
         file = tf.io.read_file(wav_file)
-        #decode voice file
-        audio, _ =tf.audio.decode_wav(file)
+        # decode voice file
+        audio, _ = tf.audio.decode_wav(file)
         audio = tf.squeeze(audio, axis=-1)
-        #change type to float32
-        audio = tf.cast(audio, tf.float32)    
-        #get the spectrogram
-        spectrogram = tf.signal.stft(audio, frame_length=frame_length, frame_step=frame_step, fft_length=fft_length)
-        #we only need the magnitude of the spectrogram
+        # change type to float32
+        audio = tf.cast(audio, tf.float32)
+        # get the spectrogram
+        spectrogram = tf.signal.stft(
+            audio, frame_length=frame_length, frame_step=frame_step, fft_length=fft_length)
+        # we only need the magnitude of the spectrogram
         spectrogram = tf.abs(spectrogram)
         spectrogram = tf.math.pow(spectrogram, 0.5)
-        #normalization
+        # normalization
         means = tf.math.reduce_mean(spectrogram, 1, keepdims=True)
-        stddevs= tf.math.reduce_std(spectrogram, 1, keepdims=True)
+        stddevs = tf.math.reduce_std(spectrogram, 1, keepdims=True)
         spectrogram = (spectrogram - means) / (stddevs + 1e-10)
         """
         Process the label
         """
-        #convert label to lower case
+        # convert label to lower case
         label = tf.strings.lower(label)
-        #split label
+        # split label
         label = tf.strings.unicode_split(label, input_encoding="UTF-8")
         # Map the characters in label to numbers
         label = char_to_num(label)
@@ -110,7 +112,8 @@ class Modeling():
             (list(train_meta["Feature"]), list(train_meta["Target"]))
         )
         train_dataset = (
-            train_dataset.map(self.encode_single_sample, num_parallel_calls=tf.data.AUTOTUNE)
+            train_dataset.map(self.encode_single_sample,
+                              num_parallel_calls=tf.data.AUTOTUNE)
             .padded_batch(batch_size)
             .prefetch(buffer_size=tf.data.AUTOTUNE)
         )
@@ -120,46 +123,53 @@ class Modeling():
             (list(valid_meta["Feature"]), list(valid_meta["Target"]))
         )
         validation_dataset = (
-            validation_dataset.map(self.encode_single_sample, num_parallel_calls=tf.data.AUTOTUNE)
+            validation_dataset.map(
+                self.encode_single_sample, num_parallel_calls=tf.data.AUTOTUNE)
             .padded_batch(batch_size)
             .prefetch(buffer_size=tf.data.AUTOTUNE)
         )
         return True
-    #defining CTC loss function
+    # defining CTC loss function
+
     def CTCLoss(self, y_true, y_pred):
-        #compute the training-time loss value 
+        # compute the training-time loss value
         batch_len = tf.cast(tf.shape(y_true)[0], dtype="int64")
         input_length = tf.cast(tf.shape(y_pred)[1], dtype="int64")
         label_length = tf.cast(tf.shape(y_true)[1], dtype="int64")
 
-        input_length = input_length * tf.ones(shape=(batch_len, 1), dtype="int64")
-        label_length = label_length * tf.ones(shape=(batch_len, 1), dtype="int64")
+        input_length = input_length * \
+            tf.ones(shape=(batch_len, 1), dtype="int64")
+        label_length = label_length * \
+            tf.ones(shape=(batch_len, 1), dtype="int64")
 
-        loss = keras.backend.ctc_batch_cost(y_true, y_pred, input_length, label_length)
+        loss = keras.backend.ctc_batch_cost(
+            y_true, y_pred, input_length, label_length)
         return loss
-    
-        #define our model
-    def build_model(self, input_dim, output_dim, rnn_layers = 5, rnn_units =128):
-        #Model input
-        input_spectrogram = keras.layers.Input(shape=(None, input_dim), name="input")
-        #Expand the dimensions to use 2D CNN
-        x = layers.Reshape((-1, input_dim, 1), name="expand_dim")(input_spectrogram)
-        #convolutions layer 1
-        x = layers.Conv2D(filters=32, 
-                        kernel_size=(11, 41), 
-                        padding="same", 
-                        strides = [2,2],
-                        activation="relu", 
-                        name="conv_1")(x)
+
+        # define our model
+    def build_model(self, input_dim, output_dim, rnn_layers=5, rnn_units=128):
+        # Model input
+        input_spectrogram = keras.layers.Input(
+            shape=(None, input_dim), name="input")
+        # Expand the dimensions to use 2D CNN
+        x = layers.Reshape((-1, input_dim, 1),
+                           name="expand_dim")(input_spectrogram)
+        # convolutions layer 1
+        x = layers.Conv2D(filters=32,
+                          kernel_size=(11, 41),
+                          padding="same",
+                          strides=[2, 2],
+                          activation="relu",
+                          name="conv_1")(x)
         x = layers.BatchNormalization(name="conv_1_bn")(x)
         x = layers.ReLU(name="conv_1_relu")(x)
-        #convolution layer 2
+        # convolution layer 2
         x = layers.Conv2D(
             filters=32,
             kernel_size=[11, 21],
             strides=[1, 2],
             padding="same",
-            activation = "relu",
+            activation="relu",
             use_bias=False,
             name="conv_2",
         )(x)
@@ -196,16 +206,20 @@ class Modeling():
         # Compile the model and return
         model.compile(optimizer=opt, loss=self.CTCLoss)
         return model
-    
+
     # A utility function to decode the output of the network
-def decode_batch_predictions(self,pred):
+
+
+def decode_batch_predictions(self, pred):
     input_len = np.ones(pred.shape[0]) * pred.shape[1]
     # Use greedy search. For complex tasks, you can use beam search
-    results = keras.backend.ctc_decode(pred, input_length=input_len, greedy=True)[0][0]
+    results = keras.backend.ctc_decode(
+        pred, input_length=input_len, greedy=True)[0][0]
     # Iterate over the results and get back the text
     output_text = []
     for result in results:
-        result = tf.strings.reduce_join(num_to_char(result)).numpy().decode("utf-8")
+        result = tf.strings.reduce_join(
+            num_to_char(result)).numpy().decode("utf-8")
         output_text.append(result)
     return output_text
 
@@ -228,7 +242,8 @@ class CallbackEval(keras.callbacks.Callback):
             predictions.extend(batch_predictions)
             for label in y:
                 label = (
-                    tf.strings.reduce_join(num_to_char(label)).numpy().decode("utf-8")
+                    tf.strings.reduce_join(num_to_char(
+                        label)).numpy().decode("utf-8")
                 )
                 targets.append(label)
         wer_score = wer(targets, predictions)
@@ -239,6 +254,3 @@ class CallbackEval(keras.callbacks.Callback):
             print(f"Target    : {targets[i]}")
             print(f"Prediction: {predictions[i]}")
             print("-" * 100)
-
-
-    
