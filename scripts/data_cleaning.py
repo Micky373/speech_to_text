@@ -38,20 +38,6 @@ class DataCleaner:
         logger.addHandler(file_handler)
 
 
-    def get_max_dur(self, df):
-        """
-        df: meta_data dataframe
-        return: maximum duration.
-        """
-        df = df.loc[df["Duration"]!=400]
-        df["Duration"] = df["Duration"].astype(int)
-        df_sorted = df.sort_values(by="Duration", ascending=False).reset_index()
-        max_dur = (int(df_sorted.head()["Duration"][0])+1)*1000
-        print("maximum duration: "+str(max_dur/1000))
-
-        return max_dur
-
-
     def meta_loader(self, path, type):
         """
         path: path to files to be loaded
@@ -96,8 +82,6 @@ class DataCleaner:
 
         logger.info("Dataframe successfully saved as "+type+" file")
 
-
-
     # splitting data 
     def split(self, df, tr, state):
         """
@@ -111,8 +95,6 @@ class DataCleaner:
         test_df = shuffled.loc[train_index:len(shuffled), :]
 
         return [train_df, test_df]
-
-
 
     # dataset shuffling
     def shuffle_data(self, df, state):
@@ -149,7 +131,6 @@ class DataCleaner:
 
         return df
 
-
     def add_duration(self, df, output=False):
         d_list = []
         if(output):
@@ -172,7 +153,6 @@ class DataCleaner:
 
         return df
 
-
     def generate_metadata(self, path, output):
         """
         extracts target and feature out of the trsTrain.txt file
@@ -192,7 +172,6 @@ class DataCleaner:
         logger.info("meta data successfully generated")
 
         return meta_data
-
 
     def make_stereo(self, df, output=False):
         for i in range(df.shape[0]):
@@ -222,6 +201,7 @@ class DataCleaner:
             ofile.writeframes(stereo)
             ofile.close()
             logger.info("successfully converted channel from mono to stereo")
+
 
     def standardize(self, df, output=False):
         # standardize to 44.1KHz
@@ -318,4 +298,11 @@ class DataCleaner:
         logger.info("Successfully featurized!!!")
         
         return extracted_features_df   
+
+
+    
+
+
+                            
+                
 
